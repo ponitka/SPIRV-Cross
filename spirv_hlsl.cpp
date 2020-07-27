@@ -3875,14 +3875,19 @@ void CompilerHLSL::read_access_chain(string *expr, const string &lhs, const SPIR
 void CompilerHLSL::emit_load(const Instruction &instruction)
 {
 	auto ops = stream(instruction);
+	uint32_t result_type = ops[0];
+	uint32_t id = ops[1];
+	uint32_t ptr = ops[2];
+
+	if (BuiltIn(get_decoration(ptr, DecorationBuiltIn)) == BuiltInSampleMask)
+	{
+		set_decoration(id, DecorationBuiltIn, BuiltInSampleMask);
+		CompilerGLSL::emit_instruction(instruction);
+	}
 
 	auto *chain = maybe_get<SPIRAccessChain>(ops[2]);
 	if (chain)
 	{
-		uint32_t result_type = ops[0];
-		uint32_t id = ops[1];
-		uint32_t ptr = ops[2];
-
 		if (has_decoration(ptr, DecorationNonUniformEXT))
 			propagate_nonuniform_qualifier(ptr);
 
